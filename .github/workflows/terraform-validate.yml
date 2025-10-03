@@ -1,0 +1,26 @@
+name: terraform-validate-ci
+run-name: validating terraform changes
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: .terraform.d/plugin-cache
+          key: ${{ runner.os }}-tfplugcache-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-tfplugcache-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
