@@ -1,13 +1,30 @@
 name: terraform-validate-ci
 run-name: validating terraform changes
+
 on:
   push:
-    branches:
-      - develop
+    branches: [ develop ]
+  pull_request:   # validate PRs too (recommended)
+    branches: [ develop ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/.gitignore'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-validate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   terraform-validate:
     runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+      TF_PLUGIN_CACHE_DIR: .terraform.d/plugin-cache   # <— make Terraform use the cached dir
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
