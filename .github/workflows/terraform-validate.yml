@@ -1,0 +1,48 @@
+name: terraform-validate-ci
+run-name: validating terraform changes
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request: 
+    branches: [ develop ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/.gitignore'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+      TF_PLUGIN_CACHE_DIR: .terraform.d/plugin-cache 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: .terraform.d/plugin-cache
+          key: ${{ runner.os }}-tfplugcache-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-tfplugcache-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
+      - name: Init (no backend)
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate -no-color

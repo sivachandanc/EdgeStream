@@ -8,9 +8,6 @@ terraform.tfstate.backup
 # Terraform plan files
 *.tfplan
 
-# Lock files
-.terraform.lock.hcl
-
 # Crash logs
 crash.log
 
